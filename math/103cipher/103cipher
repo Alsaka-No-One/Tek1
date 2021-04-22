@@ -1,0 +1,188 @@
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
+##
+## EPITECH PROJECT, 2018
+##
+## File description:
+##
+##
+
+from math import sqrt, ceil
+import sys
+
+def init_indentity_matix(key_size) :
+    matrix = []
+    for i in range(0, key_size) :
+        matrix += [[0] * key_size]
+    for y in range(0, key_size) :
+        for x in range(0, key_size) :
+            if (x == y) :
+                matrix[y][x] = 1
+    return matrix
+
+def show_matrix_identity(key_size, matrix) :
+    print("\nidentity matrix :")
+    for y in range(0, key_size) :
+        for x in range(0, key_size) :
+            if (x != key_size - 1) :
+                print(matrix[y][x], end='\t')
+            else :
+                print(matrix[y][x])
+
+def create_comatrix_sizetwo(matrix) :    
+    comatrix = []
+    for i in range(0, 2) :
+        comatrix += [[0] * 2]
+    comatrix[0][0] = matrix[1][1]
+    comatrix[0][1] = -matrix[0][1]
+    comatrix[1][0] = -matrix[1][0]
+    comatrix[1][1] = matrix[0][0]
+    return comatrix
+
+def create_matrix_cofactor(matrix) :
+    cofactor = []
+    for i in range(0, 3) :
+        cofactor += [[0] * 3]
+    cofactor[0][0] = find_determinant_of_size2(matrix[1][1], matrix[1][2], matrix[2][1], matrix[2][2])
+    cofactor[0][1] = -find_determinant_of_size2(matrix[1][0], matrix[1][2], matrix[2][0], matrix[2][2])
+    cofactor[0][2] = find_determinant_of_size2(matrix[1][0], matrix[1][1], matrix[2][0], matrix[2][1])
+    cofactor[1][0] = -find_determinant_of_size2(matrix[0][1], matrix[0][2], matrix[2][1], matrix[2][2])
+    cofactor[1][1] = find_determinant_of_size2(matrix[0][0], matrix[0][2], matrix[2][0], matrix[2][2])
+    cofactor[1][2] = -find_determinant_of_size2(matrix[0][0], matrix[0][1], matrix[2][0], matrix[2][1])
+    cofactor[2][0] = find_determinant_of_size2(matrix[0][1], matrix[0][2], matrix[1][1], matrix[1][2])
+    cofactor[2][1] = -find_determinant_of_size2(matrix[0][0], matrix[0][2], matrix[1][0], matrix[1][2])
+    cofactor[2][2] = find_determinant_of_size2(matrix[0][0], matrix[0][1], matrix[1][0], matrix[1][1])
+    return cofactor
+
+def find_determinant_of_size2(number1, number2, number3, number4) :
+    determ = number1 * number4 - number2 * number3
+    return determ
+
+def find_determinant_of_size3(matrix) :
+    determ = matrix[0][0] * find_determinant_of_size2(matrix[1][1], matrix[1][2], matrix[2][1], matrix[2][2])
+    determ -= matrix[0][1] * find_determinant_of_size2(matrix[1][0], matrix[1][2], matrix[2][0], matrix[2][2])
+    determ += matrix[0][2] * find_determinant_of_size2(matrix[1][0], matrix[1][1], matrix[2][0], matrix[2][1])
+    return determ
+
+def inversion_matrix_size_two(matrix, comatrix) :
+    determ = find_determinant_of_size2(matrix[0][0], matrix[0][1], matrix[1][0], matrix[1][1])
+    if (determ == 0) :
+        print("The matrix can't be inverse because the determinant is equal to 0")
+        exit(84)
+    else :
+        comatrix[0][0] /= determ
+        comatrix[0][1] /= determ
+        comatrix[1][0] /= determ
+        comatrix[1][1] /= determ
+        print("Key matrix:")
+        for y in range(0, 2) :
+            for x in range(0, 2) :
+                if (x != 1):
+                    print(comatrix[y][x], end='\t')
+                else :
+                    print(comatrix[y][x], end='\n')
+
+def inversion_matrix_size_three(matrix) :
+    cofactor = create_matrix_cofactor(matrix)
+    determ = find_determinant_of_size3(matrix)
+    if (determ == 0) :
+        print("The matrix can't be inverse because the determinant is equal to 0")
+        exit(84)
+    for y in range(0, 3) :
+        for x in range(0, 3) :
+            cofactor[y][x] *= 1/determ
+    print("Key matrix:")
+    for y in range(0, 3) :
+        for x in range(0, 3) :
+            if (x != 2) :
+                print(cofactor[y][x], end='\t')
+            else :
+                print(cofactor[y][x], end='\n')
+
+class Key :
+    def __init__(self, key) :
+        self.key = key
+        self.key_matrix = []
+        self.matrix_size = ceil(sqrt(len(self.key)))
+    def find_key(self) :
+        index = 0
+        for i in range(0, self.matrix_size) :
+            self.key_matrix += [[0] * self.matrix_size]
+        for y in range(0, self.matrix_size) :
+            for x in range(0, self.matrix_size) :
+                self.key_matrix[y][x] = ord(self.key[index])
+                if (index < len(self.key) - 1) :
+                    index += 1
+                else :
+                    return
+    def show_key(self) :
+        print("Key matrix:")
+        for y in range(0, self.matrix_size) :
+            for x in range(0, self.matrix_size) :
+                if (x != self.matrix_size - 1) :
+                    print(self.key_matrix[y][x], end='\t')
+                else :
+                    print(self.key_matrix[y][x])
+
+class Message :
+    def __init__(self, message, key) :
+        self.message = message
+        self.message_matrix = []
+        self.key = key
+        self.size = ceil(len(self.message) / self.key.matrix_size)
+        self.result_matrix = []
+    def ascii_message(self):
+        index = 0
+        for i in range(0, self.size) :
+            self.message_matrix += [[0] * self.key.matrix_size]
+        for y in range(0, self.size) :
+            for x in range(0, self.key.matrix_size) :
+                self.message_matrix[y][x] = ord(self.message[index])
+                if (index < len(self.message) - 1) :
+                    index += 1
+                else :
+                    return
+    def calcul(self) :
+        for y in range(0, self.size) :
+            self.result_matrix += [[0] * self.key.matrix_size]
+        for k in range(0, self.size) :
+            for j in range(0, self.key.matrix_size) :
+                for i in range(0, self.key.matrix_size) :
+                    self.result_matrix[k][i] += self.message_matrix[k][j] * self.key.key_matrix[j][i]
+    def show_result(self) :
+        print()
+        print("Matrix result :")
+        for y in range(0, self.size) :
+            for x in range(0, self.key.matrix_size) :
+                if (x == self.key.matrix_size - 1 and y == self.size - 1) :
+                    print(self.result_matrix[y][x])
+                else :
+                    print(self.result_matrix[y][x], end=' ')
+
+if (len(sys.argv) != 4) :
+    print("""USAGE
+    ./103cipher message key flag
+
+DESCRIPTION
+    message     a message, made of ASCII characters
+    key         the encryption key, made of ASCII characters
+    flag        0 for the message to be encrypted, 1 to be decrypted""")
+    exit(84)
+if (sys.argv[3] == '0') :
+    key = Key(sys.argv[2])
+    key.find_key()  
+    key.show_key()
+    message = Message(sys.argv[1], key)
+    message.ascii_message()
+    message.calcul()
+    message.show_result()
+if (sys.argv[3] == '1') :
+    key = Key(sys.argv[2])
+    key.find_key()
+ #    identity_matrix = init_indentity_matix(key.matrix_size)        pas besoin pour le moment
+ #    show_matrix_identity(key.matrix_size, identity_matrix)         idem
+    if (key.matrix_size == 2) :
+        comatrix = create_comatrix_sizetwo(key.key_matrix)
+        inversion_matrix_size_two(key.key_matrix, comatrix)
+    if (key.matrix_size == 3) :
+        inversion_matrix_size_three(key.key_matrix)
